@@ -64,7 +64,7 @@ std::vector<int> solve_lp(int n, int k, int lambda, const std::vector<double>& a
     return sizes;
 }
 
-uint128_t request_from_server(const char* ip, int port, SeedsCodewordsFlat* sf) {
+uint128_t request_from_server(const char* ip, int port, SeedsCodewordsFlat* sf, int start, int N) {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     sockaddr_in serv_addr{};
     serv_addr.sin_family = AF_INET;
@@ -72,7 +72,9 @@ uint128_t request_from_server(const char* ip, int port, SeedsCodewordsFlat* sf) 
     inet_pton(AF_INET, ip, &serv_addr.sin_addr);
     connect(sock, (sockaddr*)&serv_addr, sizeof(serv_addr));
 
-    send(sock, (char*)sf, sizeof(*sf), 0); 
+    send(sock, (char*)sf, sizeof(*sf), 0);
+    send(sock, &start, sizeof(start), 0);  // Send offset
+    send(sock, &N, sizeof(N), 0);          // Send domain size
 
     uint128_t result;
     recv(sock, (char*)&result, sizeof(result), 0);
@@ -147,8 +149,8 @@ int main() {
     FlattenCodewords(s, 0, &sf0);
     FlattenCodewords(s, 1, &sf1);
 
-    uint128_t r0 = request_from_server("127.0.0.1", 9000, &sf0);
-    uint128_t r1 = request_from_server("127.0.0.1", 9001, &sf1);
+    uint128_t r0 = request_from_server("127.0.0.1", 9000, &sf0, start, N);
+    uint128_t r1 = request_from_server("127.0.0.1", 9001, &sf1, start, N);
 
     uint128_t result = r0 - r1;
 

@@ -36,11 +36,17 @@ int main(int argc, char** argv) {
     SeedsCodewordsFlat flat;
     recv(client_fd, &flat, sizeof(flat), 0);
 
-    // Evaluate
+    int start = 0;
+    recv(client_fd, &start, sizeof(start), 0);
+
+    int dpf_N = 0;
+    recv(client_fd, &dpf_N, sizeof(dpf_N), 0);
+
     uint128_t sum = 0;
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < dpf_N; ++i) {
         uint128_t val = EvaluateFlat(&flat, i, prf_method);
-        sum += val * DB[i];
+        if (start + i < DB.size())
+            sum += val * DB[start + i];
     }
 
     send(client_fd, &sum, sizeof(sum), 0);
